@@ -13,6 +13,9 @@ alias pi='ssh pi@77.202.39.55'
 
 alias cat=bat
 
+#alias for cheat.sh
+cheat(){ curl -sL "https://cheat.sh/$1"; }
+
 # Automatically do an ls after each cd, z, or zoxide
 cd ()
 {
