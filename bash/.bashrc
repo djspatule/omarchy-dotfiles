@@ -63,6 +63,7 @@ alias lls='ls -l'                 # List
 alias diskspace="du -S | sort -n -r |more"
 alias folders='du -h --max-depth=1'
 alias folderssort='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'
+#tree but only for directories. Add -L x to limit to x deep in the sub-directories
 alias treed='tree -CAFd'
 alias mountedinfo='df -hT'
 
