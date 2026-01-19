@@ -17,14 +17,37 @@ alias cat=bat
 cheat(){ curl -sL "https://cheat.sh/$1"; }
 
 # Automatically do an ls after each cd, z, or zoxide
-cd ()
-{
-        if [ -n "$1" ]; then
-                builtin cd "$@" && ls -a
-        else
-                builtin cd ~ && ls -a
-        fi
+#cd ()
+#{
+#        if [ -n "$1" ]; then
+#                builtin cd "$@" && ls -a
+#        else
+#                builtin cd ~ && ls -a
+#        fi
+#}
+
+# --- Auto-ls after successful directory changes ---
+
+# cd wrapper
+cd() {
+  if builtin cd "$@"; then
+    ls -a
+  fi
 }
+
+# If you use zoxide, it usually defines functions `z` and `zi`.
+# Wrap them ONLY if they exist.
+if declare -F z >/dev/null; then
+  __orig_z="$(declare -f z)"
+  eval "${__orig_z/z ()/z__orig ()}"
+  z() { z__orig "$@" && ls -a; }
+fi
+
+if declare -F zi >/dev/null; then
+  __orig_zi="$(declare -f zi)"
+  eval "${__orig_zi/zi ()/zi__orig ()}"
+  zi() { zi__orig "$@" && ls -a; }
+fi
 
 
 #######################################################
