@@ -9,7 +9,7 @@ source ~/.local/share/omarchy/default/bash/rc
 #
 # Make an alias for invoking commands you use constantly
 # alias p='python'
-alias pi='ssh pi@77.202.39.55'
+alias pi='ssh pi@78.202.39.55'
 
 alias cat=bat
 
