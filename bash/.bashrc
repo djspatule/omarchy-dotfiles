@@ -10,7 +10,7 @@ source ~/.local/share/omarchy/default/bash/rc
 # Make an alias for invoking commands you use constantly
 # alias p='python'
 alias pi='ssh pi@78.202.39.55'
-alias server='ssh lion@192.168.1.7'
+alias server='ssh lion@192.168.1.41'
 
 alias cat=bat
 
@@ -165,3 +165,4 @@ lazyg() {
 }
 
 
+export TLDR_OPTIONS=both
