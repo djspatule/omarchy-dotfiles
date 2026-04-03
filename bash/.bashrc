@@ -10,46 +10,58 @@ source ~/.local/share/omarchy/default/bash/rc
 # Make an alias for invoking commands you use constantly
 # alias p='python'
 alias pi='ssh pi@78.202.39.55'
-alias server='ssh lion@192.168.1.41'
+alias server='ssh lion@192.168.1.7'
 
-alias cat=bat
-
-#alias for cheat.sh
-cheat(){ curl -sL "https://cheat.sh/$1"; }
-
-# Automatically do an ls after each cd, z, or zoxide
-#cd ()
-#{
-#        if [ -n "$1" ]; then
-#                builtin cd "$@" && ls -a
-#        else
-#                builtin cd ~ && ls -a
-#        fi
-#}
-
-# --- Auto-ls after successful directory changes ---
-
-# cd wrapper
-cd() {
-  if builtin cd "$@"; then
-    ls -a
+# Show files with bat syntax highlighting without opening a pager when available.
+cat() {
+  if [[ -t 1 ]] && command -v bat >/dev/null 2>&1; then
+    bat --paging=never --style=header,grid "$@"
+  else
+    command cat "$@"
   fi
 }
 
-# If you use zoxide, it usually defines functions `z` and `zi`.
-# Wrap them ONLY if they exist.
-if declare -F z >/dev/null; then
-  __orig_z="$(declare -f z)"
-  eval "${__orig_z/z ()/z__orig ()}"
-  z() { z__orig "$@" && ls -a; }
-fi
+# Print the current directory and copy it to the Wayland clipboard when available.
+pwd() {
+  if [[ -n $WAYLAND_DISPLAY ]] && command -v wl-copy >/dev/null 2>&1; then
+    builtin pwd "$@" | tee >(wl-copy >/dev/null)
+  else
+    builtin pwd "$@"
+  fi
+}
 
-if declare -F zi >/dev/null; then
-  __orig_zi="$(declare -f zi)"
-  eval "${__orig_zi/zi ()/zi__orig ()}"
-  zi() { zi__orig "$@" && ls -a; }
-fi
+# Use duf when available, otherwise fall back to df.
+df() {
+  if command -v duf >/dev/null 2>&1; then
+    duf "$@"
+  else
+    command df "$@"
+  fi
+}
 
+#alias for cheat.sh
+cheat() { curl -sL "https://cheat.sh/$1"; }
+
+# Make cd use exact paths first, then fall back to zoxide jumps.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init bash)"
+
+  cd() {
+    if (( $# == 0 )); then
+      builtin cd ~ || return
+    elif [[ -d $1 ]]; then
+      builtin cd "$1" || return
+    else
+      z "$@" || return
+    fi
+
+    if command -v eza >/dev/null 2>&1; then
+      eza -lah --group-directories-first --icons=auto
+    else
+      command ls -lah
+    fi
+  }
+fi
 
 #######################################################
 # GENERAL ALIAS'S
@@ -68,30 +80,30 @@ alias f="find . | grep "
 alias rmd='/bin/rm  --recursive --force --verbose '
 
 # Alias's for multiple directory listing commands
-alias la='ls -Alh'                # show hidden files
+alias la='ls -Alh' # show hidden files
 #alias ls='ls -aFh --color=always' # add colors and file type extensions
-alias lx='ls -lXBh'               # sort by extension
-alias lk='ls -lSrh'               # sort by size
-alias lc='ls -ltcrh'              # sort by change time
-alias lu='ls -lturh'              # sort by access time
-alias lr='ls -lRh'                # recursive ls
-alias lt='ls -ltrh'               # sort by date
-alias lm='ls -alh |more'          # pipe through 'more'
-alias lw='ls -xAh'                # wide listing format
-alias ll='ls -Fls'                # long listing format
-alias labc='ls -lap'              # alphabetical sort
-alias lf="ls -l | egrep -v '^d'"  # files only
-alias ldir="ls -l | egrep '^d'"   # directories only
-alias lla='ls -Al'                # List and Hidden Files
-alias las='ls -A'                 # Hidden Files
-alias lls='ls -l'                 # List
+alias lx='ls -lXBh'              # sort by extension
+alias lk='ls -lSrh'              # sort by size
+alias lc='ls -ltcrh'             # sort by change time
+alias lu='ls -lturh'             # sort by access time
+alias lr='ls -lRh'               # recursive ls
+alias lt='ls -ltrh'              # sort by date
+alias lm='ls -alh |more'         # pipe through 'more'
+alias lw='ls -xAh'               # wide listing format
+alias ll='ls -Fls'               # long listing format
+alias labc='ls -lap'             # alphabetical sort
+alias lf="ls -l | grep -E -v '^d'" # files only
+alias ldir="ls -l | grep -E '^d'"  # directories only
+alias lla='ls -Al'               # List and Hidden Files
+alias las='ls -A'                # Hidden Files
+alias lls='ls -l'                # List
 
 # Alias's to show disk space and space used in a folder
 alias diskspace="du -S | sort -n -r |more"
 alias folders='du -h --max-depth=1'
 alias folderssort='find . -maxdepth 1 -type d -print0 | xargs -0 du -sk | sort -rn'
 #tree but only for directories. Add -L x to limit to x deep in the sub-directories
-alias treed='tree -CAFd'
+alias treed='tree -CAFda -I ".git"'
 alias mountedinfo='df -hT'
 
 # Alias's for archives
@@ -110,20 +122,20 @@ alias docker-clean=' \
 
 # Searches for text in all files in the current folder
 ftext() {
-        # -i case-insensitive
-        # -I ignore binary files
-        # -H causes filename to be printed
-        # -r recursive search
-        # -n causes line number to be printed
-        # optional: -F treat search term as a literal, not a regular expression
-        # optional: -l only print filenames and not the matching lines ex. grep -irl "$1" *
-        grep -iIHrn --color=always "$1" . | less -r
+  # -i case-insensitive
+  # -I ignore binary files
+  # -H causes filename to be printed
+  # -r recursive search
+  # -n causes line number to be printed
+  # optional: -F treat search term as a literal, not a regular expression
+  # optional: -l only print filenames and not the matching lines ex. grep -irl "$1" *
+  grep -iIHrn --color=always "$1" . | less -r
 }
 
 # Copy file with a progress bar
 cpp() {
-    set -e
-    strace -q -ewrite cp -- "${1}" "${2}" 2>&1 |
+  set -e
+  strace -q -ewrite cp -- "${1}" "${2}" 2>&1 |
     awk '{
         count += $NF
         if (count % 10 == 0) {
@@ -140,33 +152,29 @@ cpp() {
     END { print "" }' total_size="$(stat -c '%s' "${1}")" count=0
 }
 
-
 # IP address lookup
 alias whatismyip="whatsmyip"
-function whatsmyip () {
-    # Internal IP Lookup.
-    if command -v ip &> /dev/null; then
-        echo -n "Internal IP: "
-        ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
-    else
-        echo -n "Internal IP: "
-        ifconfig wlan0 | grep "inet " | awk '{print $2}'
-    fi
+function whatsmyip() {
+  # Internal IP Lookup.
+  if command -v ip &>/dev/null; then
+    echo -n "Internal IP: "
+    ip addr show wlan0 | grep "inet " | awk '{print $2}' | cut -d/ -f1
+  else
+    echo -n "Internal IP: "
+    ifconfig wlan0 | grep "inet " | awk '{print $2}'
+  fi
 
-    # External IP Lookup
-    echo -n "External IP: "
-    curl -s ifconfig.me
+  # External IP Lookup
+  echo -n "External IP: "
+  curl -s ifconfig.me
 }
 
 lazyg() {
-        git add .
-        git commit -m "$1"
-        git push
+  git add .
+  git commit -m "$1"
+  git push
 }
 
+alias gs='git status'
 
 export TLDR_OPTIONS=both
-
-if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$XDG_RUNTIME_DIR/ssh-agent.socket" ]; then
-  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-fi

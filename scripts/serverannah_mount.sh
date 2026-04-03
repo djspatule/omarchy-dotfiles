@@ -3,9 +3,13 @@
 set -euo pipefail
 
 mountpoint="$HOME/mnt/serverannah"
-remote="lion@192.168.1.7:/mnt/"
+remote="serverannah:/mnt/"
 
 mkdir -p "$mountpoint"
+
+while ! ssh -o BatchMode=yes -o ConnectTimeout=5 serverannah true >/dev/null 2>&1; do
+  sleep 1
+done
 
 if mountpoint -q "$mountpoint"; then
   echo "Already mounted: $mountpoint"
