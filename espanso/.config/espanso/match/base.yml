@@ -46,10 +46,6 @@ matches:
     replace: "problème"
     word: true
     propagate_case: true
-  - trigger: "pbs"
-    replace: "problèmes"
-    word: true
-    propagate_case: true
   - trigger: "gouv"
     replace: "gouvernement"
     word: true
@@ -116,6 +112,14 @@ matches:
     propagate_case: true
   - trigger: "dc"
     replace: "donc"
+    word: true
+    propagate_case: true
+  - trigger: "dl"
+    replace: "download"
+    word: true
+    propagate_case: true
+  - trigger: "dls"
+    replace: "downloads"
     word: true
     propagate_case: true
   - trigger: "ê"
@@ -515,7 +519,7 @@ matches:
     word: true
     propagate_case: true
   - trigger: "IdF"
-    replace: "Ile de France"
+    replace: "Ile-de-France"
     word: true
     propagate_case: true
   - trigger: "inno"
@@ -608,16 +612,8 @@ matches:
     replace: "hardware"
     word: true
     propagate_case: true
-  - trigger: "hws"
-    replace: "hardwares"
-    word: true
-    propagate_case: true
   - trigger: "sw"
     replace: "software"
-    word: true
-    propagate_case: true
-  - trigger: "sws"
-    replace: "softwares"
     word: true
     propagate_case: true
 
