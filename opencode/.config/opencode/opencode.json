@@ -3,5 +3,16 @@
   "autoupdate": false,
   "experimental": {
     "disable_paste_summary": true
+  },
+  "plugin": [
+    "@mohak34/opencode-notifier@latest"
+  ],
+  "permission": {
+    "read": "ask",
+    "edit": "ask",
+    "list": "ask",
+    "glob": "ask",
+    "grep": "ask",
+    "external_directory": "ask"
   }
 }
