@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Audio routing policy for Omarchy systems with split speaker/headphone profiles.
 # If you move to a new laptop, verify these assumptions first:
@@ -174,6 +174,12 @@ snapshot_state() {
   printf '%s|%s\n' "$hp_state" "$bt_sink"
 }
 
+relevant_event() {
+  local event="$1"
+
+  [[ $event == *" on card "* || $event == *" on sink "* || $event == *" on source "* ]]
+}
+
 wait_for_audio() {
   for _ in $(seq 1 40); do
     if pactl info >/dev/null 2>&1; then
@@ -184,21 +190,23 @@ wait_for_audio() {
 }
 
 main() {
-  local last_state new_state
+  local last_state new_state event
 
   wait_for_audio
   apply_output_policy
   apply_source_policy
   last_state="$(snapshot_state)"
 
-  pactl subscribe | while read -r _; do
+  while read -r event; do
+    relevant_event "$event" || continue
+
     new_state="$(snapshot_state)"
     if [[ "$new_state" != "$last_state" ]]; then
       apply_output_policy
       apply_source_policy
       last_state="$new_state"
     fi
-  done
+  done < <(pactl subscribe)
 }
 
 main "$@"
